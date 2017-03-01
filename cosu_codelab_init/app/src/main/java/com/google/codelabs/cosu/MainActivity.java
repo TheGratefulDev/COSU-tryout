@@ -16,6 +16,8 @@ package com.google.codelabs.cosu;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.admin.DevicePolicyManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -26,8 +28,6 @@ import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -41,6 +41,8 @@ import java.util.Date;
 public class MainActivity extends Activity {
 
     private Button takePicButton;
+    private Button lockTaskButton;
+
     private ImageView imageView;
     private String mCurrentPhotoPath;
     private int permissionCheck;
@@ -48,6 +50,12 @@ public class MainActivity extends Activity {
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 2;
     private static final String FILE_TAG = "File Creation";
+
+    /*
+    Device Policy
+     */
+    public DevicePolicyManager mDevicePolicyManager;
+    public static final String EXTRA_FILEPATH = "com.google.codelabs.cosu.EXTRA_FILEPATH";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +87,39 @@ public class MainActivity extends Activity {
                 }
             }
         });
+
+
+
+        /*
+        This code initializes the device policy manager,
+        and implements the button which will start lock task mode.
+        When the button is tapped, as long as the app is whitelisted correctly,
+        it will start the lock task mode activity.
+         */
+
+        mDevicePolicyManager = (DevicePolicyManager)
+                getSystemService(Context.DEVICE_POLICY_SERVICE);
+
+        /*
+        * */
+
+        lockTaskButton = (Button) findViewById(R.id.start_lock_button);
+        lockTaskButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if ( mDevicePolicyManager.isLockTaskPermitted(  getApplicationContext().getPackageName()) ) {
+                    Intent lockIntent = new Intent(getApplicationContext(),   LockedActivity.class);
+                    lockIntent.putExtra(EXTRA_FILEPATH, mCurrentPhotoPath);
+                    startActivity(lockIntent);
+                    finish();
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                             "NOT LOCK WHITELISTED ",Toast.LENGTH_SHORT)
+                            .show();
+                }
+            }
+        });
+
 
         imageView = (ImageView) findViewById(R.id.main_imageView);
 
@@ -171,5 +212,7 @@ public class MainActivity extends Activity {
 
         Bitmap imageBitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
         imageView.setImageBitmap(imageBitmap);
+
+        lockTaskButton.setEnabled(true);
     }
 }

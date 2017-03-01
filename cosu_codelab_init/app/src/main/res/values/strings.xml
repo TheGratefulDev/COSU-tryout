@@ -21,4 +21,6 @@
     <string name="pic_button">Take picture</string>
     <string name="no_camera_apps">No camera apps available to capture photo</string>
     <string name="main_image_description">Pictures taken will be displayed here</string>
+    <string name="lock_button">Start lock task mode</string>
+
 </resources>
